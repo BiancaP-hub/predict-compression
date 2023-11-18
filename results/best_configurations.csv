@@ -1,0 +1,5 @@
+random_forest,"{'model_type': 'random_forest', 'n_estimators': 100, 'max_depth': 30, 'min_samples_split': 5, 'min_samples_leaf': 2}",138.47484511754152
+gradient_boosting,"{'model_type': 'gradient_boosting', 'n_estimators': 300, 'learning_rate': 0.1, 'max_depth': 3}",144.75859646861235
+cnn,"{'model_type': 'cnn', 'learning_rate': 0.1, 'conv_units': 32, 'dense_units': [50]}",164.0104866027832
+lstm,"{'model_type': 'lstm', 'learning_rate': 0.01, 'lstm_units': [64], 'dense_units': [100, 50]}",146.81567
+cnn_lstm,"{'model_type': 'cnn_lstm', 'learning_rate': 0.01, 'conv_units': 32, 'lstm_units': [64], 'dense_units': [100, 50]}",148.0218

@@ -1,17 +1,18 @@
 # Main execution file for the project
 import os
-import pandas as pd
 from request_to_download import download_file_from_github
+from constants import MODEL_TYPES
 import process_segmentation # leave
 
 # Add argument to script to pass the path of the local data-multi-subject repository
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset_dir', type=str)
+parser.add_argument('--model_type', type=str, choices=MODEL_TYPES, default='cnn')
 args = parser.parse_args()
 
 
-def main(dataset_dir):
+def main(dataset_dir, model_type):
     # Set dataset directory as global variable for other scripts in this project to use
     os.environ['DATASET_DIR'] = dataset_dir
 
@@ -40,4 +41,4 @@ def main(dataset_dir):
 
 if __name__ == '__main__':
     args = parser.parse_args()
-    main(args.dataset_dir)
+    main(args.dataset_dir, args.model_type)

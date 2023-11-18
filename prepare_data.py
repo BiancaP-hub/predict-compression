@@ -1,8 +1,9 @@
 import numpy as np
-import os
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
+from utils import extract_patient_id
+from constants import MSCC_LABELS_FILE, METRICS_DIR
 
 
 def split_patient_data_vert_level(patient_id, ap_ratio_df, metrics_df):
@@ -47,6 +48,53 @@ def split_patient_data_vert_level(patient_id, ap_ratio_df, metrics_df):
     split_dataframes.append(metrics_df[metrics_df['VertLevel'] >= start_vert])
 
     return split_dataframes
+
+
+def split_patient_samples():
+    """
+    Process data and split it based on patient IDs and vertebrae levels.
+
+    Parameters:
+    mscc_labels_file (str): Path to the MSCC labels file.
+    metrics_dir (str): Directory containing metrics files.
+
+    Returns:
+    List of tuples containing split data and corresponding labels.
+    """
+    # Load mscc values as pandas dataframe
+    ap_ratio_df = pd.read_csv(MSCC_LABELS_FILE, delimiter=',')
+
+    # Apply the function to each filename in the column to extract patient IDs
+    patients = ap_ratio_df['filename'].apply(extract_patient_id).unique()
+
+    data_splits = []  # List to store the split data and corresponding labels
+
+    for patient in patients:
+        # Load metrics file
+        metrics_file = f"{METRICS_DIR}/{patient}.csv"
+        metrics_df = pd.read_csv(metrics_file, delimiter=',')
+
+        # Split the data
+        split_data_vert_level = split_patient_data_vert_level(patient, ap_ratio_df, metrics_df)
+
+        # For each split, find the corresponding label
+        for split_df in split_data_vert_level:
+            # Get the VertLevel range of the split
+            min_vert_level = split_df['VertLevel'].min()
+            max_vert_level = split_df['VertLevel'].max()
+
+            # Find the corresponding label in ap_ratio_df
+            label = ap_ratio_df[(ap_ratio_df['compression_level'] >= min_vert_level) &
+                                (ap_ratio_df['compression_level'] <= max_vert_level) &
+                                (ap_ratio_df['filename'].str.contains(patient))]['diameter_AP_ratio_PAM50_normalized']
+
+            # Store the split data and label
+            data_splits.append((split_df, label.tolist()))
+
+    return data_splits
+
+# Example usage
+# data_splits = process_data_and_split(MSCC_LABELS_FILE, METRICS_DIR)
 
 
 def preprocess_data(data_splits, model_type='cnn'):
