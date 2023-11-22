@@ -5,6 +5,8 @@ from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.model_selection import KFold
 import numpy as np
 from sklearn.metrics import mean_squared_error
+from visualize_results import loss_plot
+import tensorflow as tf
 
 
 def optimize_hyperparameters(X_train, y_train, model_type, num_samples=10):
@@ -64,7 +66,7 @@ def optimize_hyperparameters(X_train, y_train, model_type, num_samples=10):
 
 def evaluate_model(config, X_train, y_train):
     """
-    Evaluate a model configuration using custom cross-validation.
+    Evaluate a model configuration using custom cross-validation, including loss plotting and MSE standard deviation calculation.
 
     Parameters:
     config (dict): Configuration dictionary containing hyperparameters and model type.
@@ -82,29 +84,33 @@ def evaluate_model(config, X_train, y_train):
         y_train_fold, y_val_fold = y_train[train_index], y_train[val_index]
 
         if model_type in ['cnn', 'lstm', 'cnn_lstm']:
-            # Create and compile the model
             model = create_model_wrapper(config, input_shape)
             assert model is not None, "Failed to define the model. Check the configuration."
 
-            # Include EarlyStopping callback
             early_stopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
 
-            # Train the model with early stopping
-            model.fit(X_train_fold, y_train_fold, epochs=1000, batch_size=32, validation_data=(X_val_fold, y_val_fold), callbacks=[early_stopping], verbose=1)
+            history = model.fit(X_train_fold, y_train_fold, epochs=1000, batch_size=32, validation_data=(X_val_fold, y_val_fold), callbacks=[early_stopping], verbose=1)
 
-            # Predict and calculate MSE
+            # Plot training and validation loss for each fold
+            loss_plot(history, model_type)
+
+            # Convert to tensor
+            X_val_fold = tf.convert_to_tensor(X_val_fold)
+
             y_pred = model.predict(X_val_fold)
         else:
             model = define_model(config, input_shape)
             model.fit(X_train_fold, y_train_fold)
-
-            # Predict and calculate MSE
             y_pred = model.predict(X_val_fold)
 
         mse = mean_squared_error(y_val_fold, y_pred)
         mse_scores.append(mse)
 
+    # Calculate and return the average and standard deviation of MSE
     average_mse = np.mean(mse_scores)
+    std_dev_mse = np.std(mse_scores)
+    print(f'Average MSE: {average_mse} +/- {std_dev_mse}')
+
     train.report({'mean_squared_error': average_mse})
 
 

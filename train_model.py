@@ -22,7 +22,7 @@ def train_model(config, X_train, y_train):
         model = create_model_wrapper(config, input_shape)
 
         # Add EarlyStopping callback
-        early_stopping = EarlyStopping(monitor='val_loss', patience=3, restore_best_weights=True)
+        early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
 
         # Train the model with early stopping
         model.fit(X_train, y_train, epochs=1000, batch_size=32, callbacks=[early_stopping], validation_split=0.2)
