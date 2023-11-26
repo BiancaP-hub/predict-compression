@@ -11,4 +11,4 @@ PAM50_METRICS_FILE = '_T2w_seg_metrics_PAM50.csv'
 MSCC_LABELS_FILE = 'generated_data/ap_ratio_norm_PAM50.csv'
 
 MODEL_TYPES = ['cnn', 'lstm', 'cnn_lstm', 'random_forest', 'gradient_boosting']
-FEATURE_NAMES = ['VertLevel', 'area', 'angle_AP', 'angle_RL', 'diameter_AP', 'diameter_RL', 'eccentricity', 'orientation', 'solidity']
+FEATURE_NAMES = ['VertLevel', 'area', 'angle_AP', 'angle_RL', 'diameter_AP', 'diameter_RL', 'eccentricity', 'orientation', 'solidity', 'torsion']
