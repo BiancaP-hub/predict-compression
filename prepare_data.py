@@ -70,6 +70,30 @@ def split_patient_samples(mscc_labels_file=MSCC_LABELS_FILE, metrics_dir=METRICS
 
     return data_splits
 
+# Version using the maximum compression value for each patient
+def associate_patient_data_with_max_compression(mscc_labels_file=MSCC_LABELS_FILE, metrics_dir=METRICS_DIR):
+    # Load MSCC values as a pandas dataframe
+    ap_ratio_df = pd.read_csv(mscc_labels_file, delimiter=',')
+
+    # Extract patient IDs
+    patients = ap_ratio_df['filename'].apply(extract_patient_id).unique()
+
+    data_labels = []  # List to store the data and corresponding labels
+
+    for patient in patients:
+        # Load metrics file
+        metrics_file = f"{metrics_dir}/{patient}.csv"
+        metrics_df = pd.read_csv(metrics_file, delimiter=',')
+
+        # Filter the ap_ratio_df for the current patient and get the maximum compression value
+        patient_ap_ratio = ap_ratio_df[ap_ratio_df['filename'].str.contains(patient)]
+        max_compression_value = patient_ap_ratio['diameter_AP_ratio_PAM50_normalized'].max()
+
+        # Append the entire metrics data and the max compression value
+        data_labels.append((metrics_df, max_compression_value))
+
+    return data_labels
+
 def extract_data_and_labels(data_splits, features_to_include=FEATURE_NAMES):
     all_data = []
     y = []
