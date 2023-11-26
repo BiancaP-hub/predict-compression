@@ -62,7 +62,7 @@ def split_patient_samples(mscc_labels_file=MSCC_LABELS_FILE, metrics_dir=METRICS
         metrics_df = pd.read_csv(metrics_file, delimiter=',')
 
         # Split the data
-        split_data_slice_number = split_patient_data_slice_number(patient, ap_ratio_df, metrics_df)
+        split_data_slice_number = create_compression_segments(patient, ap_ratio_df, metrics_df)
 
         # For each split, find the corresponding label and append to data_splits
         for split_df, compression_value in split_data_slice_number:
@@ -93,6 +93,39 @@ def associate_patient_data_with_max_compression(mscc_labels_file=MSCC_LABELS_FIL
         data_labels.append((metrics_df, max_compression_value))
 
     return data_labels
+
+def create_compression_segments(patient, ap_ratio_df, metrics_df):
+    patient_ap_ratio = ap_ratio_df[ap_ratio_df['filename'].str.contains(patient)].sort_values(by='slice(I->S)', ascending=True)
+
+    slice_numbers = patient_ap_ratio['slice(I->S)'].tolist()
+    compression_values = patient_ap_ratio['diameter_AP_ratio_PAM50_normalized'].tolist()
+    total_slices = metrics_df['slice'].max()
+
+    # Reverse the order of compression values
+    compression_values.reverse()
+
+    segments = []
+    for i, current_slice in enumerate(slice_numbers):
+        excluded_slices = set()
+
+        for j, other_slice in enumerate(slice_numbers):
+            if i != j:
+                # Find the closest slice to the other slice among all slices except other_slice
+                closest_slice = min(slice_numbers[:j] + slice_numbers[j+1:], key=lambda x: abs(x - other_slice))
+
+                half_distance = abs(other_slice - closest_slice) // 2
+                exclude_start = max(0, other_slice - half_distance)
+                exclude_end = min(total_slices, other_slice + half_distance)
+                excluded_slices.update(range(exclude_start, exclude_end))
+
+        # Create the segment by including all slices except the excluded ones
+        segment_slices = set(range(0, total_slices + 1)) - excluded_slices
+        segment_df = metrics_df[metrics_df['slice'].isin(segment_slices)].reset_index(drop=True)
+
+        # Add the segment and corresponding compression value
+        segments.append((segment_df, compression_values[i]))
+
+    return segments
 
 def extract_data_and_labels(data_splits, features_to_include=FEATURE_NAMES):
     all_data = []
