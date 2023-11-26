@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import subprocess
 from constants import SEG_DIR, METRICS_DIR, PAM50_METRICS_FILE, LABELED_SEG_DIR, LABELED_SEG_IMG, SEG_IMG, METRICS_FILE, IMG
+from compute_torsion import compute_torsion_metric
 
 
 def generate_segmentation(image_path, segmentation_folder='generated_data/seg'):
@@ -143,4 +144,6 @@ if __name__ == '__main__':
         print('Processing patient', patient)
         metrics_df = process_patient(patient)
         metrics_df = clean_metrics_data(metrics_df)
+        # Add torsion to metrics_df
+        metrics_df = compute_torsion_metric(metrics_df)
         metrics_df.to_csv(os.path.join(METRICS_DIR, patient + '.csv'), index=False)
