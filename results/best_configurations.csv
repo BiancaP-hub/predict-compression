@@ -1,5 +1,6 @@
-random_forest,"{'model_type': 'random_forest', 'n_estimators': 100, 'max_depth': 30, 'min_samples_split': 5, 'min_samples_leaf': 2}",138.47484511754152
-gradient_boosting,"{'model_type': 'gradient_boosting', 'n_estimators': 300, 'learning_rate': 0.1, 'max_depth': 3}",144.75859646861235
-cnn,"{'model_type': 'cnn', 'learning_rate': 0.1, 'conv_units': 32, 'dense_units': [50]}",164.0104866027832
-lstm,"{'model_type': 'lstm', 'learning_rate': 0.01, 'lstm_units': [64], 'dense_units': [100, 50]}",146.81567
-cnn_lstm,"{'model_type': 'cnn_lstm', 'learning_rate': 0.01, 'conv_units': 32, 'lstm_units': [64], 'dense_units': [100, 50]}",148.0218
+cnn_lstm,"['VertLevel', 'area', 'angle_AP', 'angle_RL', 'diameter_AP', 'diameter_RL', 'eccentricity', 'orientation', 'solidity']","{'model_type': 'cnn_lstm', 'learning_rate': 0.01, 'conv_units': 64, 'lstm_units': [64], 'dense_units': [50]}",144.55516
+gradient_boosting,['eccentricity'],"{'model_type': 'gradient_boosting', 'n_estimators': 100, 'learning_rate': 0.01, 'max_depth': 5}",24.68876813356885
+gradient_boosting,"['eccentricity', 'diameter_AP']","{'model_type': 'gradient_boosting', 'n_estimators': 300, 'learning_rate': 0.2, 'max_depth': 5}",15.144537416516727
+gradient_boosting,"['eccentricity', 'diameter_AP', 'VertLevel']","{'model_type': 'gradient_boosting', 'n_estimators': 100, 'learning_rate': 0.01, 'max_depth': 10}",14.378094540142916
+gradient_boosting,"['eccentricity', 'diameter_AP', 'VertLevel', 'angle_RL']","{'model_type': 'gradient_boosting', 'n_estimators': 200, 'learning_rate': 0.1, 'max_depth': 5}",14.343849466356684
+gradient_boosting,"['eccentricity', 'diameter_AP', 'VertLevel', 'angle_RL', 'area']","{'model_type': 'gradient_boosting', 'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 5}",13.804558996662811

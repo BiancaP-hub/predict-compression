@@ -11,10 +11,10 @@ def residuals_plot(y_test, y_pred, model_type):
     plt.xlabel('Predicted')
     plt.ylabel('Residuals')
     plt.axhline(y=0, color='r', linestyle='-')
-    plt.show()
 
     # save plot in plots folder
     plt.savefig(f'plots/{model_type}_residuals.png')
+    plt.show()
 
 def loss_plot(history, model_type):
     plt.title(f'{model_type} Loss Plot')
@@ -30,7 +30,7 @@ def actual_vs_predicted_plot(y_test, y_pred, model_type):
     plt.ylabel('Predicted Values')
     plt.title('Actual vs Predicted')
     plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'k--', lw=2)  # Diagonal line
-    plt.show()
 
     # Save plot in plots folder
     plt.savefig(f'plots/{model_type}_actual_vs_predicted.png')
+    plt.show()

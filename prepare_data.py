@@ -3,123 +3,92 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from utils import extract_patient_id
-from constants import MSCC_LABELS_FILE, METRICS_DIR
+from constants import MSCC_LABELS_FILE, METRICS_DIR, FEATURE_NAMES
 
+def split_patient_data_slice_number(patient, ap_ratio_df, metrics_df):
+    # Filter the ap_ratio_df for the current patient
+    patient_ap_ratio = ap_ratio_df[ap_ratio_df['filename'].str.contains(patient)]
 
-def split_patient_data_vert_level(patient_id, ap_ratio_df, metrics_df):
-    """
-    Splits the metrics data of a given patient based on the vert level midpoints between pairs 
-    of vert levels associated with their labels in the ap_ratio dataset.
+    # Sort the patient data by slice number in ascending order (to correct the reversed order)
+    patient_ap_ratio = patient_ap_ratio.sort_values(by='slice(I->S)', ascending=True)
 
-    Parameters:
-    patient_id (str): The ID of the patient whose data needs to be split.
-    ap_ratio_df (pd.DataFrame): DataFrame containing the ap_ratio data with vert level information.
-    metrics_df (pd.DataFrame): DataFrame containing the metrics data for the patient.
+    # Get the list of slice numbers and compression values
+    slice_numbers = patient_ap_ratio['slice(I->S)'].tolist()
+    compression_values = patient_ap_ratio['diameter_AP_ratio_PAM50_normalized'].tolist()
 
-    Returns:
-    list of pd.DataFrame: A list of DataFrames, each representing a split portion of the patient's metrics data.
-    """
+    # Initialize a list to store the splits
+    splits = []
 
-    # Filter the ap_ratio data for the given patient and extract vert levels
-    patient_ap_ratio_df = ap_ratio_df[ap_ratio_df['filename'].str.contains(patient_id)]
-    vert_levels = patient_ap_ratio_df['compression_level'].sort_values().tolist()
+    if len(slice_numbers) > 1:
+        # Calculate the mean of the slice numbers for splitting
+        split_slices = [(slice_numbers[i] + slice_numbers[i+1]) // 2 for i in range(len(slice_numbers) - 1)]
 
-    # Prepare for splitting the metrics data
-    split_dataframes = []
-    start_vert = metrics_df['VertLevel'].min()
+        prev_slice = 0
+        for index, split_slice in enumerate(split_slices):
+            # Select data from the previous slice up to the current split slice
+            split_df = metrics_df[(metrics_df['slice'] >= prev_slice) & (metrics_df['slice'] < split_slice)]
 
-    for i in range(len(vert_levels) - 1):
-        # Calculate the splitting point based on the vert levels
-        if vert_levels[i + 1] - vert_levels[i] == 1:
-            # Consecutive vert levels, split at the junction
-            split_point = vert_levels[i + 1]
-        else:
-            # Gap between vert levels, split at the midpoint
-            split_point = (vert_levels[i] + vert_levels[i + 1]) / 2
+            # Update the previous slice for the next iteration
+            prev_slice = split_slice
 
-        # Split the metrics data up to the split point
-        split_df = metrics_df[(metrics_df['VertLevel'] >= start_vert) & (metrics_df['VertLevel'] < split_point)]
-        split_dataframes.append(split_df)
+            # Add the split data and corresponding compression value to the list
+            # The compression values are associated in reverse order
+            splits.append((split_df, compression_values[-(index + 1)]))
 
-        # Update the start vert for the next iteration
-        start_vert = split_point
+        # Handle the remaining data after the last split
+        remaining_df = metrics_df[metrics_df['slice'] >= prev_slice]
+        if not remaining_df.empty:
+            # Use the first compression value for the remaining data
+            splits.append((remaining_df, compression_values[0]))
+    else:
+        # If there is only one compression value, return the entire dataset with that value
+        splits.append((metrics_df, compression_values[-1]))
 
-    # Add the remaining data after the last split point
-    split_dataframes.append(metrics_df[metrics_df['VertLevel'] >= start_vert])
+    return splits
 
-    return split_dataframes
-
-
-def split_patient_samples():
-    """
-    Process data and split it based on patient IDs and vertebrae levels.
-
-    Parameters:
-    mscc_labels_file (str): Path to the MSCC labels file.
-    metrics_dir (str): Directory containing metrics files.
-
-    Returns:
-    List of tuples containing split data and corresponding labels.
-    """
+def split_patient_samples(mscc_labels_file=MSCC_LABELS_FILE, metrics_dir=METRICS_DIR):
     # Load mscc values as pandas dataframe
-    ap_ratio_df = pd.read_csv(MSCC_LABELS_FILE, delimiter=',')
+    ap_ratio_df = pd.read_csv(mscc_labels_file, delimiter=',')
 
     # Apply the function to each filename in the column to extract patient IDs
+    # Assuming extract_patient_id is a defined function
     patients = ap_ratio_df['filename'].apply(extract_patient_id).unique()
 
     data_splits = []  # List to store the split data and corresponding labels
 
     for patient in patients:
         # Load metrics file
-        metrics_file = f"{METRICS_DIR}/{patient}.csv"
+        metrics_file = f"{metrics_dir}/{patient}.csv"
         metrics_df = pd.read_csv(metrics_file, delimiter=',')
 
         # Split the data
-        split_data_vert_level = split_patient_data_vert_level(patient, ap_ratio_df, metrics_df)
+        split_data_slice_number = split_patient_data_slice_number(patient, ap_ratio_df, metrics_df)
 
-        # For each split, find the corresponding label
-        for split_df in split_data_vert_level:
-            # Get the VertLevel range of the split
-            min_vert_level = split_df['VertLevel'].min()
-            max_vert_level = split_df['VertLevel'].max()
-
-            # Find the corresponding label in ap_ratio_df
-            label = ap_ratio_df[(ap_ratio_df['compression_level'] >= min_vert_level) &
-                                (ap_ratio_df['compression_level'] <= max_vert_level) &
-                                (ap_ratio_df['filename'].str.contains(patient))]['diameter_AP_ratio_PAM50_normalized']
-
-            # Store the split data and label
-            data_splits.append((split_df, label.tolist()))
+        # For each split, find the corresponding label and append to data_splits
+        for split_df, compression_value in split_data_slice_number:
+            data_splits.append((split_df, compression_value))
 
     return data_splits
 
-# Example usage
-# data_splits = process_data_and_split(MSCC_LABELS_FILE, METRICS_DIR)
-
-
-def preprocess_data(data_splits, model_type='cnn'):
+def extract_data_and_labels(data_splits, features_to_include=FEATURE_NAMES):
     all_data = []
     y = []
 
     # Process each split in data_splits
-    for split_df, labels in data_splits:
-        # Assuming each split has a single corresponding label
-        label = labels[0] if labels else None
-
+    for split_df, label in data_splits:
         if label is not None:
-            # Extract feature data
-            patient_data = split_df.iloc[:, 1:].values
-            all_data.append(patient_data)
+            patient_data = split_df[features_to_include]
+            all_data.append(patient_data.values)
             y.append(label)
+    
+    return all_data, y
 
+def preprocess_data(all_data, y, model_type):
     # Pad each patient's data to have the same number of rows
     max_length = max([data.shape[0] for data in all_data])
-    padded_data = []
-    for data in all_data:
-        padded = np.pad(data, ((0, max_length - data.shape[0]), (0, 0)), 'constant', constant_values=0)
-        padded_data.append(padded)
+    padded_data = [np.pad(data, ((0, max_length - data.shape[0]), (0, 0)), 'constant', constant_values=0) for data in all_data]
 
-    # Flatten the data for certain model types
+    # Flatten the data for ensemble models
     if model_type in ['random_forest', 'gradient_boosting']:
         X = np.array([data.flatten() for data in padded_data])
     else:
@@ -132,18 +101,15 @@ def preprocess_data(data_splits, model_type='cnn'):
     # Split data into train and test sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
+    # Convert the labels to numpy arrays
     y_train = np.array(y_train, dtype=np.float32)
     y_test = np.array(y_test, dtype=np.float32)
-
-    # Reshape the data for 1D-CNN or LSTM
-    if model_type in ['cnn', 'lstm', 'cnn_lstm']:
-        X_train = X_train.reshape(X_train.shape[0], X_train.shape[1], X_train.shape[2])
-        X_test = X_test.reshape(X_test.shape[0], X_test.shape[1], X_test.shape[2])
 
     # Print the shapes of the data
     print('X_train shape:', X_train.shape)
     print('X_test shape:', X_test.shape)
     print('y_train shape:', len(y_train))
     print('y_test shape:', len(y_test))
-    
+
     return X_train, X_test, y_train, y_test
+

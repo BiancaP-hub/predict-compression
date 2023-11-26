@@ -5,7 +5,7 @@ def extract_patient_id(filename):
     return filename.split('/')[1].split('_')[0]
 
 
-def update_best_configuration(model_type, best_config, best_scores, file_path='results/best_configurations.csv'):
+def update_best_configuration(model_type, feature_subset, best_config, best_mse, file_path='results/best_configurations.csv'):
     # Read existing data and initialize a flag for updating
     should_update = True
     try:
@@ -13,23 +13,24 @@ def update_best_configuration(model_type, best_config, best_scores, file_path='r
             reader = csv.reader(file)
             existing_data = {}
             for row in reader:
-                existing_model, existing_config, existing_mse = row
+                existing_model, existing_features, existing_config, existing_mse = row
                 existing_mse = float(existing_mse)
-                existing_data[existing_model] = (existing_config, existing_mse)
-                if existing_model == model_type and best_scores[model_type] >= existing_mse:
+                existing_data[(existing_model, existing_features)] = (existing_config, existing_mse)
+                # Check if we have a matching model type and feature subset
+                if existing_model == model_type and existing_features == str(feature_subset) and best_mse >= existing_mse:
                     should_update = False
     except FileNotFoundError:
         existing_data = {}
 
     # Update the data if the current score is better
     if should_update:
-        existing_data[model_type] = (str(best_config), best_scores[model_type])
+        existing_data[(model_type, str(feature_subset))] = (str(best_config), best_mse)
 
     # Write the updated data back to the file
     with open(file_path, 'w', newline='') as file:
         writer = csv.writer(file)
-        for model, (config, mse) in existing_data.items():
-            writer.writerow([model, config, mse])
+        for (model, features), (config, mse) in existing_data.items():
+            writer.writerow([model, features, config, mse])
 
 # Example usage
 # update_best_configurations('cnn', best_config, best_scores)
@@ -41,7 +42,7 @@ def load_best_configuration(model_type, file_path='results/best_configurations.c
         reader = csv.reader(file)
         for row in reader:
             if row[0] == model_type:
-                return eval(row[1])
+                return eval(row[2])
     raise ValueError(f"Best configuration for {model_type} not found in {file_path}")
 
 

@@ -59,7 +59,7 @@ def extract_pam50_metrics(segmentation_path: str, labeled_segmentation_path: str
     subprocess.run(get_pam50_metrics)
 
 
-def clean_pam50_metrics_data(df):
+def clean_metrics_data(df):
     """
     Clean and reformat the PAM50 metrics data.
 
@@ -118,11 +118,11 @@ def process_patient(patient):
     extract_pam50_metrics(segmentation_path, labeled_segmentation_path, output_pam50_path)
 
     # Error check for PAM50 metrics file
-    if not os.path.exists(output_pam50_path):
-        print('ERROR: PAM50 metrics file was not generated for', patient)
+    if not os.path.exists(output_metrics_path):
+        print('ERROR: Metrics file was not generated for', patient)
         return pd.DataFrame()
 
-    return pd.read_csv(output_pam50_path)
+    return pd.read_csv(output_metrics_path)
 
 if __name__ == '__main__':
     dataset_dir = os.getenv('DATASET_DIR')
@@ -131,13 +131,16 @@ if __name__ == '__main__':
 
     patients = [p for p in os.listdir(dataset_dir) if p.startswith('sub-')]
 
+    # # Skip patients with known issues
+    # patients = [p for p in patients if p not in ['sub-mgh01', 'sub-vallHebron04', 'sub-cmrra05']]
+
     for patient in patients:
-        pam50_file_path = os.path.join(SEG_DIR, patient + PAM50_METRICS_FILE)
-        if os.path.exists(pam50_file_path):
+        metrics_file_path = os.path.join(SEG_DIR, patient + METRICS_FILE)
+        if os.path.exists(metrics_file_path):
             print('Skipping patient', patient)
             continue
 
         print('Processing patient', patient)
-        pam50_metrics_df = process_patient(patient)
-        pam50_metrics_df = clean_pam50_metrics_data(pam50_metrics_df)
-        pam50_metrics_df.to_csv(os.path.join(METRICS_DIR, patient + '.csv'), index=False)
+        metrics_df = process_patient(patient)
+        metrics_df = clean_metrics_data(metrics_df)
+        metrics_df.to_csv(os.path.join(METRICS_DIR, patient + '.csv'), index=False)
