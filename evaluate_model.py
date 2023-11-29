@@ -6,6 +6,7 @@ from ray import train
 from define_model import define_model, create_model_wrapper
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.model_selection import KFold
+from config import suppress_stdout
 
 def evaluate_model(config, X_train, y_train):
     """
@@ -35,7 +36,7 @@ def evaluate_model(config, X_train, y_train):
             history = model.fit(X_train_fold, y_train_fold, epochs=1000, batch_size=32, validation_data=(X_val_fold, y_val_fold), callbacks=[early_stopping], verbose=1)
 
             # Plot training and validation loss for each fold
-            loss_plot(history, model_type)
+            # loss_plot(history, model_type)
 
             # Convert to tensor
             X_val_fold = tf.convert_to_tensor(X_val_fold)
@@ -54,4 +55,5 @@ def evaluate_model(config, X_train, y_train):
     std_dev_mse = np.std(mse_scores)
     print(f'Average MSE: {average_mse} +/- {std_dev_mse}')
 
-    train.report({'mean_squared_error': average_mse})
+    with suppress_stdout():
+        train.report({'mean_squared_error': average_mse})

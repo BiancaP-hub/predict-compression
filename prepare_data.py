@@ -50,23 +50,17 @@ def split_patient_samples(mscc_labels_file=MSCC_LABELS_FILE, metrics_dir=METRICS
     # Load mscc values as pandas dataframe
     ap_ratio_df = pd.read_csv(mscc_labels_file, delimiter=',')
 
-    # Apply the function to each filename in the column to extract patient IDs
-    # Assuming extract_patient_id is a defined function
     patients = ap_ratio_df['filename'].apply(extract_patient_id).unique()
-
-    data_splits = []  # List to store the split data and corresponding labels
+    data_splits = []  # List to store the data splits, labels, and patient IDs
 
     for patient in patients:
-        # Load metrics file
         metrics_file = f"{metrics_dir}/{patient}.csv"
         metrics_df = pd.read_csv(metrics_file, delimiter=',')
 
-        # Split the data
         split_data_slice_number = create_compression_segments(patient, ap_ratio_df, metrics_df)
 
-        # For each split, find the corresponding label and append to data_splits
         for split_df, compression_value in split_data_slice_number:
-            data_splits.append((split_df, compression_value))
+            data_splits.append((split_df, compression_value, patient))  # Include patient ID
 
     return data_splits
 
@@ -119,8 +113,8 @@ def create_compression_segments(patient, ap_ratio_df, metrics_df):
                 excluded_slices.update(range(exclude_start, exclude_end))
 
         # Create the segment by including all slices except the excluded ones
-        segment_slices = set(range(0, total_slices + 1)) - excluded_slices
-        segment_df = metrics_df[metrics_df['slice'].isin(segment_slices)].reset_index(drop=True)
+        segment_slices = set(range(0, total_slices + 1)) - excluded_slices      
+        segment_df = metrics_df[metrics_df['slice'].isin(segment_slices)]
 
         # Add the segment and corresponding compression value
         segments.append((segment_df, compression_values[i]))
@@ -130,23 +124,25 @@ def create_compression_segments(patient, ap_ratio_df, metrics_df):
 def extract_data_and_labels(data_splits, features_to_include=FEATURE_NAMES):
     all_data = []
     y = []
+    patient_ids = []
 
     # Process each split in data_splits
-    for split_df, label in data_splits:
+    for split_df, label, patient_id in data_splits:
         if label is not None:
             patient_data = split_df[features_to_include]
             all_data.append(patient_data.values)
             y.append(label)
+            patient_ids.append(patient_id)  # Keep track of the patient ID for each split
     
-    return all_data, y
+    return all_data, y, patient_ids
 
-def preprocess_data(all_data, y, model_type):
+def preprocess_data(all_data, y, patient_ids, model_type):
     # Pad each patient's data to have the same number of rows
     max_length = max([data.shape[0] for data in all_data])
     padded_data = [np.pad(data, ((0, max_length - data.shape[0]), (0, 0)), 'constant', constant_values=0) for data in all_data]
 
     # Flatten the data for ensemble models
-    if model_type in ['random_forest', 'gradient_boosting']:
+    if model_type in ['random_forest', 'gradient_boosting', 'xgb_regressor', 'stacked_rf_gb']:
         X = np.array([data.flatten() for data in padded_data])
     else:
         X = np.stack(padded_data, axis=0)
@@ -155,8 +151,8 @@ def preprocess_data(all_data, y, model_type):
     scaler = StandardScaler()
     X = scaler.fit_transform(X.reshape(X.shape[0], -1)).reshape(X.shape)
 
-    # Split data into train and test sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # Split data into train and test sets along with patient IDs
+    X_train, X_test, y_train, y_test, train_ids, test_ids = train_test_split(X, y, patient_ids, test_size=0.2, random_state=42)
 
     # Convert the labels to numpy arrays
     y_train = np.array(y_train, dtype=np.float32)
@@ -168,5 +164,5 @@ def preprocess_data(all_data, y, model_type):
     print('y_train shape:', len(y_train))
     print('y_test shape:', len(y_test))
 
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test, y_train, y_test, train_ids, test_ids
 

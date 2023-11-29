@@ -9,7 +9,8 @@ def bootstrap_confidence_interval(model, X_test, y_test, n_iterations=1000, ci=9
         # Sample with replacement from X_test and y_test
         indices = np.random.choice(len(X_test), len(X_test), replace=True)
         X_sample, y_sample = X_test[indices], y_test[indices]
-        
+
+        # Predict and calculate MSE
         with suppress_stdout():
             y_pred = model.predict(X_sample)
 
@@ -24,4 +25,7 @@ def bootstrap_confidence_interval(model, X_test, y_test, n_iterations=1000, ci=9
     upper = 100 - lower
     lower_bound, upper_bound = np.percentile(mse_values, [lower, upper])
 
-    return lower_bound, upper_bound
+    # Calculate the standard deviation of MSE
+    mse_std_dev = np.std(mse_values)
+
+    return (lower_bound, upper_bound), mse_std_dev

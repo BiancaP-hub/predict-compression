@@ -165,3 +165,11 @@ generated_data/seg/
 generated_data/labeled_seg/
 generated_data/compression_labels/
 data/t2w/
+plots/
+results_old/
+plots_with_splitting/
+plots_with_masking/
+results_with_splitting/
+results_with_masking/
+models_with_splitting/
+models_with_masking/

@@ -21,6 +21,10 @@ def loss_plot(history, model_type):
     plt.plot(history.history['loss'], label='Training loss')
     plt.plot(history.history['val_loss'], label='Validation loss')
     plt.legend()
+
+    # save plot in plots folder
+    plt.savefig(f'plots/{model_type}_loss.png')
+
     plt.show()
 
 def actual_vs_predicted_plot(y_test, y_pred, model_type):

@@ -7,7 +7,9 @@ best_model_paths = {
     'gradient_boosting': 'models/best_gradient_boosting.pkl',
     'cnn': 'models/best_cnn.h5',
     'lstm': 'models/best_lstm.h5',
-    'cnn_lstm': 'models/best_cnn_lstm.h5'
+    'cnn_lstm': 'models/best_cnn_lstm.h5',
+    'xgb_regressor': 'models/best_xgb_regressor.pkl',
+    'stacked_rf_gb': 'models/best_stacked_rf_gb.pkl'
 }
 
 def save_model(model, model_type):

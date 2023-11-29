@@ -1,6 +1,7 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv1D, BatchNormalization, MaxPooling1D, Flatten, Dense, LSTM
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor, VotingRegressor
+from xgboost import XGBRegressor
 import tensorflow as tf
 
 def define_model(config, input_shape=None):
@@ -58,6 +59,35 @@ def define_model(config, input_shape=None):
             max_depth=config["max_depth"],
             random_state=42
         )
+
+    elif model_type == "xgb_regressor":
+        model = XGBRegressor(
+        n_estimators=config.get("n_estimators", 100),
+        learning_rate=config.get("learning_rate", 0.1),
+        max_depth=config.get("max_depth", 3),
+        subsample=config.get("subsample", 1),
+        colsample_bytree=config.get("colsample_bytree", 1),
+        random_state=42
+        )
+
+    elif model_type == "stacked_rf_gb":
+        # Define the individual models
+        rf_model = RandomForestRegressor(
+            n_estimators=config.get("rf_n_estimators", 100),
+            max_depth=config.get("rf_max_depth", None),
+            min_samples_split=config.get("rf_min_samples_split", 2),
+            min_samples_leaf=config.get("rf_min_samples_leaf", 1),
+            random_state=42
+        )
+        gb_model = GradientBoostingRegressor(
+            n_estimators=config.get("gb_n_estimators", 100),
+            learning_rate=config.get("gb_learning_rate", 0.1),
+            max_depth=config.get("gb_max_depth", 3),
+            random_state=42
+        )
+
+        # Create a VotingRegressor
+        model = VotingRegressor(estimators=[('rf', rf_model), ('gb', gb_model)])
 
     else:
         raise ValueError("Invalid model type. Options: 'cnn', 'lstm', 'cnn_lstm', 'random_forest', 'gradient_boosting'.")
