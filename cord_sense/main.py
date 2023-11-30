@@ -49,6 +49,8 @@ def main(dataset_dir, model_type):
     # initialize_git_annex(local_t2w_dir)
     # retrieve_files_with_git_annex()
 
+    # TODO: Add image processing steps here
+
     # Load the dataset
     data_splits = split_patient_samples()
 

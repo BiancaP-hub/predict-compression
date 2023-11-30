@@ -92,14 +92,6 @@ def define_search_space(model_type):
             'dense_units': tune.choice([[50], [100, 50]])
         })
 
-    # elif model_type == 'random_forest':
-    #     search_space.update({
-    #         'n_estimators': tune.choice([100, 200, 300]),
-    #         'max_depth': tune.choice([10, 20, 30]),
-    #         'min_samples_split': tune.choice([2, 5, 10]),
-    #         'min_samples_leaf': tune.choice([1, 2, 4])
-    #     })
-
     elif model_type == 'random_forest':
         search_space.update({
             'n_estimators': tune.choice(list(range(50, 501, 50))),
@@ -113,20 +105,13 @@ def define_search_space(model_type):
 
     elif model_type == 'gradient_boosting':
         search_space.update({
-            'n_estimators': tune.choice([100, 200, 300]),
-            'learning_rate': tune.choice([0.01, 0.1, 0.2]),
-            'max_depth': tune.choice([3, 5, 10])
+            'n_estimators': tune.choice([50, 100, 200, 300, 500]),
+            'learning_rate': tune.choice([0.005, 0.01, 0.05, 0.1, 0.2]),
+            'max_depth': tune.choice([3, 4, 5, 6, 7, 8, 10, 12]),
+            'subsample': tune.choice([0.6, 0.7, 0.8, 0.9, 1.0]),
+            'min_samples_split': tune.choice([2, 4, 6, 8, 10]),
+            'min_samples_leaf': tune.choice([1, 2, 3, 4, 5])
         })
-
-    # elif model_type == 'gradient_boosting':
-    #     search_space.update({
-    #         'n_estimators': tune.choice([50, 100, 200, 300, 500]),
-    #         'learning_rate': tune.choice([0.005, 0.01, 0.05, 0.1, 0.2]),
-    #         'max_depth': tune.choice([3, 4, 5, 6, 7, 8, 10, 12]),
-    #         'subsample': tune.choice([0.6, 0.7, 0.8, 0.9, 1.0]),
-    #         'min_samples_split': tune.choice([2, 4, 6, 8, 10]),
-    #         'min_samples_leaf': tune.choice([1, 2, 3, 4, 5])
-    #     })
 
     elif model_type == 'xgb_regressor':
         search_space.update({
@@ -140,16 +125,21 @@ def define_search_space(model_type):
     elif model_type == 'stacked_rf_gb':
         search_space.update({
             # Random Forest parameters
-            'rf_n_estimators': tune.choice([100, 200, 300]),
-            'rf_max_depth': tune.choice([10, 20, 30, None]),  # None for no limit
-            'rf_min_samples_split': tune.choice([2, 5, 10]),
-            'rf_min_samples_leaf': tune.choice([1, 2, 4]),
+            'n_estimators': tune.choice(list(range(50, 501, 50))),
+            'max_depth': tune.choice(list(range(5, 51, 5))),
+            'min_samples_split': tune.choice(list(range(2, 21, 2))),
+            'min_samples_leaf': tune.choice([1, 2, 3, 4]),
+            'max_features': tune.choice(['sqrt', 'log2', 0.2, 0.5, 0.8]),
+            'bootstrap': tune.choice([True, False]),
+            'criterion': tune.choice(['gini', 'entropy']),
 
             # Gradient Boosting parameters
-            'gb_n_estimators': tune.choice([50, 100, 200, 300, 500]),
-            'gb_learning_rate': tune.choice([0.005, 0.01, 0.05, 0.1, 0.2]),
-            'gb_max_depth': tune.choice([3, 4, 5, 6, 7, 8, 10, 12]),
-            'gb_subsample': tune.choice([0.6, 0.7, 0.8, 0.9, 1.0])
+            'n_estimators': tune.choice([50, 100, 200, 300, 500]),
+            'learning_rate': tune.choice([0.005, 0.01, 0.05, 0.1, 0.2]),
+            'max_depth': tune.choice([3, 4, 5, 6, 7, 8, 10, 12]),
+            'subsample': tune.choice([0.6, 0.7, 0.8, 0.9, 1.0]),
+            'min_samples_split': tune.choice([2, 4, 6, 8, 10]),
+            'min_samples_leaf': tune.choice([1, 2, 3, 4, 5])
         })
 
     return search_space
