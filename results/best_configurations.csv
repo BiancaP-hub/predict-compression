@@ -1,6 +1,12 @@
-cnn_lstm,"['VertLevel', 'area', 'angle_AP', 'angle_RL', 'diameter_AP', 'diameter_RL', 'eccentricity', 'orientation', 'solidity']","{'model_type': 'cnn_lstm', 'learning_rate': 0.01, 'conv_units': 64, 'lstm_units': [64], 'dense_units': [50]}",144.55516
-gradient_boosting,['eccentricity'],"{'model_type': 'gradient_boosting', 'n_estimators': 100, 'learning_rate': 0.01, 'max_depth': 5}",24.68876813356885
-gradient_boosting,"['eccentricity', 'diameter_AP']","{'model_type': 'gradient_boosting', 'n_estimators': 300, 'learning_rate': 0.2, 'max_depth': 5}",15.144537416516727
-gradient_boosting,"['eccentricity', 'diameter_AP', 'VertLevel']","{'model_type': 'gradient_boosting', 'n_estimators': 100, 'learning_rate': 0.01, 'max_depth': 10}",14.378094540142916
-gradient_boosting,"['eccentricity', 'diameter_AP', 'VertLevel', 'angle_RL']","{'model_type': 'gradient_boosting', 'n_estimators': 200, 'learning_rate': 0.1, 'max_depth': 5}",14.343849466356684
-gradient_boosting,"['eccentricity', 'diameter_AP', 'VertLevel', 'angle_RL', 'area']","{'model_type': 'gradient_boosting', 'n_estimators': 100, 'learning_rate': 0.1, 'max_depth': 5}",13.804558996662811
+Model Type,Feature Subset,Best Configuration,MSE
+random_forest,['eccentricity'],"{'model_type': 'random_forest', 'n_estimators': 200, 'max_depth': 20, 'min_samples_split': 5, 'min_samples_leaf': 4}",17.974818609225263
+random_forest,"['eccentricity', 'solidity']","{'model_type': 'random_forest', 'n_estimators': 300, 'max_depth': 30, 'min_samples_split': 2, 'min_samples_leaf': 4}",16.682114311090096
+random_forest,"['eccentricity', 'solidity', 'diameter_AP']","{'model_type': 'random_forest', 'n_estimators': 300, 'max_depth': 20, 'min_samples_split': 2, 'min_samples_leaf': 4}",16.545871408159005
+cnn,['diameter_AP'],"{'model_type': 'cnn', 'learning_rate': 0.001, 'conv_units': 64, 'dense_units': [100, 50]}",29.895227
+cnn,"['diameter_AP', 'area']","{'model_type': 'cnn', 'learning_rate': 0.0001, 'conv_units': 128, 'dense_units': [100, 50]}",23.510109
+cnn,"['diameter_AP', 'area', 'eccentricity']","{'model_type': 'cnn', 'learning_rate': 0.01, 'conv_units': 32, 'dense_units': [100, 50]}",23.091745
+cnn,"['diameter_AP', 'area', 'eccentricity', 'angle_RL']","{'model_type': 'cnn', 'learning_rate': 0.001, 'conv_units': 32, 'dense_units': [100, 50]}",19.075598
+lstm,['diameter_RL'],"{'model_type': 'lstm', 'learning_rate': 0.01, 'lstm_units': [128, 64], 'dense_units': [50]}",34.43664
+lstm,"['diameter_RL', 'area']","{'model_type': 'lstm', 'learning_rate': 0.001, 'lstm_units': [64], 'dense_units': [50]}",34.396
+gradient_boosting,['diameter_AP'],"{'model_type': 'gradient_boosting', 'n_estimators': 200, 'learning_rate': 0.01, 'max_depth': 10}",17.601890698139123
+gradient_boosting,"['diameter_AP', 'solidity']","{'model_type': 'gradient_boosting', 'n_estimators': 200, 'learning_rate': 0.1, 'max_depth': 3}",17.396138175340234
