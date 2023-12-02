@@ -10,4 +10,4 @@ and specify the path to data-multi-subject directory on your machine (required).
 You will also need to install the sct_venv environment and run the command inside it. Follow the instructions here : https://spinalcordtoolbox.com/user_section/installation.html
 
 ## Acknowledgment
-I would like to acknowledge the work of Jan Valosek (https://github.com/spinalcordtoolbox/detect-compression/tree/main) which provided inspiration for this one. This work extensively uses the methods from SpinalCordToolbox for processing patient MRI images of the spinal cord as well.
+I would like to acknowledge the work of Jan Valosek and collaborators (https://github.com/spinalcordtoolbox/detect-compression/tree/main) which provided inspiration for this one. This work extensively uses the methods from SpinalCordToolbox for processing patient MRI images of the spinal cord as well.

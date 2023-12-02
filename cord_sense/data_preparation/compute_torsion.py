@@ -1,4 +1,4 @@
-# Credits to : Jan Valosek (https://github.com/spinalcordtoolbox/detect-compression/tree/main)
+# Credits to : https://github.com/spinalcordtoolbox/detect-compression/tree/main
 
 # If useful
 def compute_torsion_metric(df):
